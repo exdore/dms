@@ -1,0 +1,75 @@
+﻿@model DMS.Models.UserViewModel
+
+@{
+    ViewBag.Title = "Пользователи";
+}
+
+<h2>Пользователи</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<form method="get">
+    <div class="form-inline">
+        <label class="control-label">Отдел: </label>
+        @Html.DropDownList("department", Model.Departments as SelectList,
+                    htmlAttributes: new { @class = "form-control" })
+
+        <label class="control-label">Роль: </label>
+        @Html.DropDownList("role", Model.Roles as SelectList,
+                htmlAttributes: new { @class = "form-control" })
+
+        <input type="submit" value="Фильтр" class="btn btn-default" />
+    </div>
+</form>
+<table class="table">
+    <tr>
+        <th>
+            Отдел
+        </th>
+        <th>
+            Роль
+        </th>
+        <th>
+            ФИО
+        </th>
+        <th>
+            Логин
+        </th>
+        <th>
+            Табельный номер
+        </th>
+        <th>
+            Является руководителем
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model.Users) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Department.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Role.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Login)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.PersonnelNumber)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.IsManager)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.Id })
+        </td>
+    </tr>
+}
+
+</table>

@@ -1,0 +1,81 @@
+﻿@model DMS.Models.DocumentViewModel
+
+@{
+    ViewBag.Title = "Документы";
+}
+
+<h2>Документы</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<form method="get">
+    <div class="form-inline">
+        <label class="control-label">Тип: </label>
+        @Html.DropDownList("type", Model.Classes as SelectList,
+                    htmlAttributes: new { @class = "form-control" })
+
+        <div class="form-group">
+            <input type="date" name="firstDate" class="form-control"/>
+        </div>
+
+        <div class="form-group">
+            <input type="date" name="secondDate" class="form-control" />
+        </div>
+
+        <input type="submit" value="Фильтр" class="btn btn-default" />
+    </div>
+</form>
+<table class="table">
+    <tr>
+        <th>
+            Тип
+        </th>
+        <th>
+            Исполнитель
+        </th>
+        <th>
+            Создатель
+        </th>
+        <th>
+            Номер
+        </th>
+        <th>
+            Дата создания
+        </th>
+        <th>
+            Дата закрытия
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model.Documents)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Class.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Executor.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Number)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreationTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExecutionTime)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                @Html.ActionLink("Close", "Close", new { id = item.Id })
+            </td>
+        </tr>
+    }
+
+</table>
