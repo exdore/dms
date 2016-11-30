@@ -15,6 +15,10 @@
         <label class="control-label">Тип: </label>
         @Html.DropDownList("type", Model.Documents.Classes as SelectList,
                     htmlAttributes: new { @class = "form-control" })
+        
+        <label class="control-label">Исполнитель: </label>
+        @Html.DropDownList("executor", Model.Documents.Executors as SelectList,
+                    htmlAttributes: new { @class = "form-control" })
 
         <div class="form-group">
             <input type="date" name="firstDate" class="form-control"/>

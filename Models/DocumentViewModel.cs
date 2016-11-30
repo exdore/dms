@@ -12,5 +12,6 @@ namespace DMS.Models
         public DateTime CreationDate { get; set; }
         public DateTime ExecutionDate { get; set; }
         public SelectList Classes { get; set; }
+        public SelectList Executors { get; set; }
     }
 }

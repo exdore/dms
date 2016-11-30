@@ -19,7 +19,7 @@ namespace DMS.Controllers
         private DMSContext db = new DMSContext();
 
         // GET: Documents
-        public ActionResult Index(int? type, DateTime? firstDate, DateTime? secondDate, int page = 1)
+        public ActionResult Index(int? type, int? executor, DateTime? firstDate, DateTime? secondDate, int page = 1)
         {
             var user = db.Users.FirstOrDefault(item => item.Login == User.Identity.Name);
             var documents = db.Documents.Include(d => d.Class).Include(d => d.Executor).Include(d => d.User);
@@ -32,6 +32,8 @@ namespace DMS.Controllers
             {
                 documents = documents.Where(item => (item.User.DepartmentId == user.DepartmentId || item.Executor.DepartmentId == user.DepartmentId));
             }
+            if (executor != null && executor != 0)
+                documents = documents.Where(item => item.ExecutorId == executor);
             if (type != null && type != 0)
                 documents = documents.Where(item => item.ClassId == type);
             if(firstDate != null)
@@ -40,12 +42,15 @@ namespace DMS.Controllers
                 documents = documents.Where(item => item.CreationTime <= secondDate);
             var types = db.Classes.ToList();
             types.Insert(0, new Class { Name = "Все", Id = 0 });
-            int pageSize = 5; // количество объектов на страницу
+            var executors = db.Users.ToList();
+            executors.Insert(0, new User { Name = "Все", Id = 0 });
+            int pageSize = 5; 
             IEnumerable<Document> documentsPerPages = documents.ToList().Skip((page - 1) * pageSize).Take(pageSize);
             PageInfo pageInfo = new PageInfo { PageNumber = page, PageSize = pageSize, TotalItems = documents.Count() };
             DocumentViewModel dvm = new DocumentViewModel
             {
                 Classes = new SelectList(types, "Id", "Name"),
+                Executors = new SelectList(executors, "Id", "Name"),
                 Documents = documentsPerPages.ToList()
             };
             DocumentIndexViewModel ivm = new DocumentIndexViewModel { PageInfo = pageInfo, Documents = dvm };

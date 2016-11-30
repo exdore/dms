@@ -21,8 +21,18 @@
                 htmlAttributes: new { @class = "form-control" })
 
         <input type="submit" value="Фильтр" class="btn btn-default" />
+
     </div>
 </form>
+@using (Html.BeginForm())
+{
+    <p>
+        <div class="form-inline">
+            <label class="control-label">Поиск: </label> @Html.TextBox("SearchString", "", htmlAttributes: new { @class = "form-control" })
+            <input type="submit" value="Search" name="searchString" class="btn btn-default" />
+            </div>
+</p>
+}
 <table class="table">
     <tr>
         <th>
@@ -46,32 +56,33 @@
         <th></th>
     </tr>
 
-@foreach (var item in Model.Users.Users) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Department.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Role.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Login)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.PersonnelNumber)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.IsManager)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.Id })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model.Users.Users)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Department.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Role.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Login)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PersonnelNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsManager)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+    }
 
 </table>
 <div class="btn-group">

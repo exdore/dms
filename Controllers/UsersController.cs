@@ -18,9 +18,13 @@ namespace DMS.Controllers
 
         // GET: Users
         [Authorize(Roles = "manager, admin")]
-        public ActionResult Index(int? department, int? role, int page = 1)
+        public ActionResult Index(int? department, int? role, string searchString, int page = 1)
         {
             IQueryable<User> users = db.Users.Include(p => p.Department);
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                users = users.Where(item => item.Name.Contains(searchString));
+            }
             if (department != null && department != 0)
             {
                 users = users.Where(p => p.DepartmentId == department);
@@ -31,10 +35,9 @@ namespace DMS.Controllers
             }
             List<Department> departments = db.Departments.ToList();
             List<Role> roles = db.Roles.ToList();
-            // устанавливаем начальный элемент, который позволит выбрать всех
             departments.Insert(0, new Department { Name = "Все", Id = 0 });
             roles.Insert(0, new Role { Name = "Все", Id = 0 });
-            int pageSize = 5; // количество объектов на страницу
+            int pageSize = 5; 
             IEnumerable<User> usersPerPages = users.ToList().Skip((page - 1) * pageSize).Take(pageSize);
             PageInfo pageInfo = new PageInfo { PageNumber = page, PageSize = pageSize, TotalItems = users.Count() };
             UserViewModel uvm = new UserViewModel
