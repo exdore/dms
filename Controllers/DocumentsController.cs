@@ -8,19 +8,30 @@ using System.Web;
 using System.Web.Mvc;
 using DMS;
 using DMS.Models;
+using System.IO;
+using System.Net.Mime;
 
 namespace DMS.Controllers
 {
+    [Authorize]
     public class DocumentsController : Controller
     {
         private DMSContext db = new DMSContext();
 
         // GET: Documents
-        public ActionResult Index(int? type, DateTime? firstDate, DateTime? secondDate)
+        public ActionResult Index(int? type, DateTime? firstDate, DateTime? secondDate, int page = 1)
         {
             var user = db.Users.FirstOrDefault(item => item.Login == User.Identity.Name);
-            var documents = db.Documents.Include(d => d.Class).Include(d => d.Executor).Include(d => d.User)
-                .Where(item => item.User.Id == user.Id || item.Executor.Id == user.Id);
+            var documents = db.Documents.Include(d => d.Class).Include(d => d.Executor).Include(d => d.User);
+            var role = db.Roles.FirstOrDefault(item => item.Id == user.RoleId);
+            if (role.Name == "user" || role.Name == "employee")
+            {
+                documents = documents.Where(item => item.User.Id == user.Id || item.Executor.Id == user.Id);
+            }
+            if(role.Name == "manager")
+            {
+                documents = documents.Where(item => (item.User.DepartmentId == user.DepartmentId || item.Executor.DepartmentId == user.DepartmentId));
+            }
             if (type != null && type != 0)
                 documents = documents.Where(item => item.ClassId == type);
             if(firstDate != null)
@@ -29,12 +40,16 @@ namespace DMS.Controllers
                 documents = documents.Where(item => item.CreationTime <= secondDate);
             var types = db.Classes.ToList();
             types.Insert(0, new Class { Name = "Все", Id = 0 });
+            int pageSize = 5; // количество объектов на страницу
+            IEnumerable<Document> documentsPerPages = documents.ToList().Skip((page - 1) * pageSize).Take(pageSize);
+            PageInfo pageInfo = new PageInfo { PageNumber = page, PageSize = pageSize, TotalItems = documents.Count() };
             DocumentViewModel dvm = new DocumentViewModel
             {
                 Classes = new SelectList(types, "Id", "Name"),
-                Documents = documents.ToList()
+                Documents = documentsPerPages.ToList()
             };
-            return View(dvm);
+            DocumentIndexViewModel ivm = new DocumentIndexViewModel { PageInfo = pageInfo, Documents = dvm };
+            return View(ivm);
         }
 
         // GET: Documents/Details/5
@@ -65,8 +80,12 @@ namespace DMS.Controllers
         // сведения см. в статье http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Number,ClassId,ExecutorId,UserId,CreationTime,ExecutionTime")] Document document)
+        public ActionResult Create([Bind(Include = "Id,Number,ClassId,ExecutorId,UserId,CreationTime,ExecutionTime")] Document document, HttpPostedFileBase file)
         {
+            var fileName = Guid.NewGuid() + Path.GetFileName(file.FileName);
+            var path = Path.Combine(Server.MapPath("~/App_Data/uploads"), fileName);
+            file.SaveAs(path);
+            document.Number = fileName;
             document.CreationTime = DateTime.Now;
             document.UserId = db.Users.FirstOrDefault(item => item.Login == User.Identity.Name).Id;
             db.Documents.Add(document);
@@ -77,6 +96,13 @@ namespace DMS.Controllers
             //ViewBag.ExecutorId = new SelectList(db.Users, "Id", "Name", document.ExecutorId);
             //ViewBag.UserId = new SelectList(db.Users, "Id", "Name", document.UserId);
             //return View(document);
+        }
+
+        public FileResult Open(int id)
+        {
+            var document = db.Documents.FirstOrDefault(item => item.Id == id);
+            var path = Path.Combine(Server.MapPath("~/App_Data/uploads"), document.Number);
+            return File(path, MediaTypeNames.Application.Octet, Path.GetFileName(path));
         }
 
         // GET: Documents/Edit/5
@@ -102,6 +128,7 @@ namespace DMS.Controllers
         // Чтобы защититься от атак чрезмерной передачи данных, включите определенные свойства, для которых следует установить привязку. Дополнительные 
         // сведения см. в статье http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "admin")]
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "Id,Number,ClassId,ExecutorId,UserId,CreationTime,ExecutionTime")] Document document)
         {
@@ -118,22 +145,8 @@ namespace DMS.Controllers
         }
 
         // GET: Documents/Delete/5
-        [Authorize(Roles = "admin")]
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Document document = db.Documents.Find(id);
-            if (document == null)
-            {
-                return HttpNotFound();
-            }
-            return View(document);
-        }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, moderator")]
         public ActionResult Close(int id)
         {
             Document document = db.Documents.Find(id);
@@ -144,9 +157,7 @@ namespace DMS.Controllers
 
         // POST: Documents/Delete/5
         [Authorize(Roles = "admin")]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public ActionResult Delete(int id)
         {
             Document document = db.Documents.Find(id);
             db.Documents.Remove(document);

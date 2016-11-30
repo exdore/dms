@@ -5,7 +5,7 @@ using Microsoft.Owin.Security;
 
 namespace DMS.Models
 {
-    public class IndexViewModel
+    public class CustomIndexViewModel
     {
         public bool HasPassword { get; set; }
         public IList<UserLoginInfo> Logins { get; set; }

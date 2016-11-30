@@ -86,7 +86,7 @@ namespace DMS.Controllers
                 string encryptedTicket = FormsAuthentication.Encrypt(authTicket);
                 var authCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);
                 HttpContext.Response.Cookies.Add(authCookie);
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Documents");
             }
 
             else

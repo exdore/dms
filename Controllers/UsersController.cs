@@ -11,13 +11,14 @@ using DMS.Models;
 
 namespace DMS.Controllers
 {
-    [Authorize(Roles = "admin")]
+    
     public class UsersController : Controller
     {
         private DMSContext db = new DMSContext();
 
         // GET: Users
-        public ActionResult Index(int? department, int? role)
+        [Authorize(Roles = "manager, admin")]
+        public ActionResult Index(int? department, int? role, int page = 1)
         {
             IQueryable<User> users = db.Users.Include(p => p.Department);
             if (department != null && department != 0)
@@ -33,13 +34,17 @@ namespace DMS.Controllers
             // устанавливаем начальный элемент, который позволит выбрать всех
             departments.Insert(0, new Department { Name = "Все", Id = 0 });
             roles.Insert(0, new Role { Name = "Все", Id = 0 });
-            UserViewModel plvm = new UserViewModel
+            int pageSize = 5; // количество объектов на страницу
+            IEnumerable<User> usersPerPages = users.ToList().Skip((page - 1) * pageSize).Take(pageSize);
+            PageInfo pageInfo = new PageInfo { PageNumber = page, PageSize = pageSize, TotalItems = users.Count() };
+            UserViewModel uvm = new UserViewModel
             {
                 Departments = new SelectList(departments, "Id", "Name"),
                 Roles = new SelectList(roles, "Id", "Name"),
-                Users = users.ToList()
+                Users = usersPerPages.ToList()
             };
-            return View(plvm);
+            UserIndexViewModel uivm = new UserIndexViewModel { PageInfo = pageInfo, Users = uvm };
+            return View(uivm);
         }
 
 
@@ -58,7 +63,7 @@ namespace DMS.Controllers
             }
             return View(user);
         }
-
+        [Authorize(Roles = "admin")]
         // GET: Users/Create
         public ActionResult Create()
         {
@@ -72,6 +77,7 @@ namespace DMS.Controllers
         // сведения см. в статье http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public ActionResult Create([Bind(Include = "Id,Name,Login,Password,DepartmentId,RoleId,PersonnelNumber,IsManager")] User user)
         {
             if (ModelState.IsValid)
@@ -87,6 +93,7 @@ namespace DMS.Controllers
         }
 
         // GET: Users/Edit/5
+        [Authorize(Roles = "admin")]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -108,6 +115,7 @@ namespace DMS.Controllers
         // сведения см. в статье http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public ActionResult Edit([Bind(Include = "Id,Name,Login,Password,DepartmentId,RoleId,PersonnelNumber,IsManager")] User user)
         {
             if (ModelState.IsValid)
@@ -122,6 +130,7 @@ namespace DMS.Controllers
         }
 
         // GET: Users/Delete/5
+        [Authorize(Roles = "admin")]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -139,6 +148,7 @@ namespace DMS.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public ActionResult DeleteConfirmed(int id)
         {
             User user = db.Users.Find(id);

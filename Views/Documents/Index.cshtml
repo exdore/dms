@@ -1,4 +1,5 @@
-﻿@model DMS.Models.DocumentViewModel
+﻿@model DMS.Models.DocumentIndexViewModel
+@using DMS.Infrastructure
 
 @{
     ViewBag.Title = "Документы";
@@ -7,12 +8,12 @@
 <h2>Документы</h2>
 
 <p>
-    @Html.ActionLink("Create New", "Create")
+    @Html.ActionLink("Добавить документ", "Create")
 </p>
 <form method="get">
     <div class="form-inline">
         <label class="control-label">Тип: </label>
-        @Html.DropDownList("type", Model.Classes as SelectList,
+        @Html.DropDownList("type", Model.Documents.Classes as SelectList,
                     htmlAttributes: new { @class = "form-control" })
 
         <div class="form-group">
@@ -49,7 +50,7 @@
         <th></th>
     </tr>
 
-    @foreach (var item in Model.Documents)
+    @foreach (var item in Model.Documents.Documents)
     {
         <tr>
             <td>
@@ -74,8 +75,13 @@
                 @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
                 @Html.ActionLink("Delete", "Delete", new { id = item.Id })
                 @Html.ActionLink("Close", "Close", new { id = item.Id })
+                @Html.ActionLink("Open", "Open", new { id = item.Id })
             </td>
         </tr>
     }
 
 </table>
+<br />
+<div class="btn-group">
+    @Html.PageLinks(Model.PageInfo, x => Url.Action("Index", new { page = x }))
+</div>
